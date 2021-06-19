@@ -3,7 +3,7 @@
 with pkgs;
 let
   customPython = pkgs.python39.buildEnv.override {
-    extraLibs = with pkgs.python39Packages; [ blessed selenium ];
+    extraLibs = with pkgs.python39Packages; [ blessed selenium pynput ];
   };
 in
-[ customPython geckodriver firefox ]
+[ customPython geckodriver firefox chromedriver google-chrome chromium ]

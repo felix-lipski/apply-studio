@@ -1,27 +1,55 @@
-from blessed import Terminal
-
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+import time
+from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
+from pynput import mouse, keyboard
 
-from time import sleep
+headless = False
+fireFoxOptions = webdriver.FirefoxOptions()
+if headless:
+    fireFoxOptions.set_headless()
+browser = webdriver.Firefox(firefox_options=fireFoxOptions)
+browser.maximize_window()
 
-driver = webdriver.Firefox()
-driver.get("http://www.python.org")
-elem = driver.find_element_by_name("q")
-elem.clear()
-elem.send_keys("pycon")
-elem.send_keys(Keys.RETURN)
-sleep(20)
-driver.close()
+class EventListeners(AbstractEventListener):
+    def after_click(self, element, driver):
+        print("after_click %s" %element)
+
+driver = EventFiringWebDriver(browser, EventListeners())
+
+driver.get("https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
 
 
-term = Terminal()
+offers = []
 
-print(term.home + term.clear + term.move_y(term.height // 2))
-print(term.black_on_blue(term.center('press any key to continue.')))
-print([1,2,3,"foo"])
+def handle_input(key):
+    try:
+        char = key.char
+        global driver
+        if char == "r":
+            driver.get("https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
+        elif char == "e":
+            global offers
+            offers = driver.find_elements_by_class_name("offer-details__text")
+            for el in offers:
+                print(el.find_element_by_tag_name("h2").text)
+                print(el.find_element_by_class_name("offer-company__name").text, "\n")
+        elif char == "n":
+            driver.find_element_by_class_name("pagination_trigger").click()
 
-with term.cbreak(), term.hidden_cursor():
-    inp = term.inkey()
+    except AttributeError:
+        print('special key {0} pressed'.format(
+            key))
 
-print(term.move_down(2) + 'You pressed ' + term.bold(repr(inp)))
+
+
+
+listener = keyboard.Listener(on_press=handle_input)
+listener.start()
+
+def on_click(x, y, button, pressed):
+    if pressed:
+        print('Mouse clicked')
+with mouse.Listener(on_click=on_click) as listener:
+    listener.join()
+
+time.sleep(10)

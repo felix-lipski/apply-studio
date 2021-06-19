@@ -7,8 +7,15 @@
   outputs = { nixpkgs, self, flake-utils, ... }@inputs:
     flake-utils.lib.eachDefaultSystem
       (system:
-        let pkgs = nixpkgs.legacyPackages.${system}; in {
+      let 
+        #pkgs = nixpkgs.legacyPackages.${system}; 
+        pkgs = import nixpkgs {
+          config = { allowUnfree = true; };
+          inherit system;
+        };
+      in {
           devShell = import ./shell.nix { inherit pkgs; };
+          defaultPackage = pkgs.mkl;
         }
       );
 }
