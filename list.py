@@ -1,48 +1,37 @@
 from selenium import webdriver
 import time
 from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
-
 from blessed import Terminal
 
+from browse import load_browser
+from graphics import print_center_msg
 
-
-def load_browser(headless = True):
-    fireFoxOptions = webdriver.FirefoxOptions()
-    if headless:
-        fireFoxOptions.set_headless()
-    browser = webdriver.Firefox(firefox_options=fireFoxOptions)
-    browser.maximize_window()
-    
-    class EventListeners(AbstractEventListener):
-        def after_click(self, element, driver):
-            print("after_click %s" %element)
-    
-    driver = EventFiringWebDriver(browser, EventListeners())
-    
-    driver.get("https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
-    print("loaded")
-    return driver
-
-
-
-def input_loop(offline = False):
-    driver = 0
+def get_offers(driver, company = "pracuj.pl"):
     offers = []
-    if offline == False:
-        driver = load_browser()
+    if company == "pracuj.pl":
+        # fetched_offers = driver.find_elements_by_class_name("results__list-container-item")
         fetched_offers = driver.find_elements_by_class_name("offer-details__text")
         for offer_element in fetched_offers:
             obj = {}
+            # offer_details_element = offer_element.find_element_by_class_name("offer-details__text")
             obj["title"] = (offer_element.find_element_by_tag_name("h2").text)
             obj["company"] = (offer_element.find_element_by_class_name("offer-company__name").text)
-            obj["element"] = offer_element
+            obj["element"] = offer_element.find_element_by_xpath("../../..")
             offers.append(obj)
+    return offers
+
+
+def input_loop(term, offline = False, headless = False):
+    driver = 0
+    offers = []
+    if offline == False:
+        driver = load_browser(term, headless = headless)
+        offers = get_offers(driver)
     else:
-        # Test Offers
         offers = [
-                {"company": "foo", "title": "janitor"},
-                {"company": "bar", "title": "monitor"},
-                {"company": "baz", "title": "clerk"},
+                {"company": "first company", "title": "first job"},
+                {"company": "second company", "title": "second job"},
+                {"company": "third company", "title": "third company"},
                 {"company": "quix", "title": "man"},
                 {"company": "fooa", "title": "janitor"},
                 {"company": "barr", "title": "monitor"},
@@ -69,38 +58,38 @@ def input_loop(offline = False):
                 {"company": "baze12", "title": "clerk"},
                 {"company": "quiz12", "title": "man"},
                 {"company": "fooa22", "title": "janitor"},
-                {"company": "barr22", "title": "monitor"},
-                {"company": "baze22", "title": "clerk"},
-                {"company": "quiz22", "title": "man"},
+                {"company": "third to last company", "title": "third to last job"},
+                {"company": "second to last company", "title": "second to last job"},
+                {"company": "last company", "title": "last job"},
                 ]
     selection = 0
     scroll = 0
-    rerender = "offers"
+    offer_height = 3
     with term.cbreak(), term.hidden_cursor():
+        print(term.clear)
         val = ""
         while val.lower() != "q":
-            if rerender:
-                rerender = False
-                print(term.clear)
-                print_offers(term, offers, selection, scroll)
+            print_offers(term, offers, selection, scroll)
             val = term.inkey()
             if not val:
                 pass
               # print("It sure is quiet in here ...")
             elif val.is_sequence:
-                print("got sequence: {0}.".format((str(val), val.name, val.code)))
+                # print("got sequence: {0}.".format((str(val), val.name, val.code)))
+                if val.name == "KEY_ENTER":
+                    print("enter")
+                    # offers[selection]["element"].find_element_by_class_name
+                # if val.name == "KEY_ESCAPE":
             elif val:
                 if val == "j":
                     selection = min(selection + 1, max(len(offers) - 1, 0))
-                    if (selection*2) >= term.height - 4:
-                        scroll = min(scroll+2, len(offers) * 2)
-                    rerender = "offers"
+                    if (selection*offer_height) >= term.height - 8:
+                        scroll = min(scroll+offer_height, (len(offers) + 2) * offer_height - term.height)
                     
                 if val == "k":
                     selection = max(selection - 1, 0)
-                    if (selection*2) - scroll <= 4:
-                        scroll = max(scroll-2, 2)
-                    rerender = "offers"
+                    if (selection*offer_height) - scroll <= 4:
+                        scroll = max(scroll-offer_height, 0)
                 if val == "r":
                     driver.get("https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
         print(f'bye!{term.normal}')
@@ -109,25 +98,31 @@ def input_loop(offline = False):
 
 def print_offers(term, offers, selection, scroll):
     width = 60
-    print(term.home)
+    lines = []
     for i, offer in enumerate(offers):
-        if (i*2) - scroll < (term.height - 2) and (i*2) >= scroll:
-            title = term.bold(("  " + offer["title"]).ljust(width))
-            company = (offer["company"]).ljust(width)
-            if i == selection:
-                title = (term.black_on_green(title))
-                company = (term.black_on_green(company))
-            print(term.center(title))
-            print(term.center(company))
+        title = (" " + offer["title"]).ljust(width)[:width]
+        company = ((offer["company"]).ljust(width))[:width]
+        if i == selection:
+            title = (term.black_on_white(title))
+            company = (term.black_on_white(company))
+        lines.append((title))
+        lines.append((company))
+        lines.append("".ljust(width))
+
+    print(term.home)
+    for i in range(term.height - 6):
+        pos = i + (scroll)
+        pos_str = ""
+        # pos_str = str(pos)
+        if scroll <= pos < term.height - 6 + scroll and pos < len(lines):
+            print(term.center(lines[pos] + pos_str))
+        else:
+            print(term.center("".ljust(width) + pos_str))
 
 
+if __name__ == "__main__":
+    term = Terminal()
+    print(term.clear)
 
-term = Terminal()
-print(term.clear)
-
-
-
-input_loop(offline = False)
-
-
+    input_loop(term, offline = False, headless = False)
 

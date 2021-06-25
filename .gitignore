@@ -1,1 +1,4 @@
 *.log
+chrome-data/
+cookies.pkl
+__pycache__/
