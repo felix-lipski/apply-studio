@@ -1,3 +1,2 @@
-run:
-	#python front.py
-	alacritty --command python list.py
+scf4:
+	alacritty --hold --command python list.py
