@@ -4,14 +4,45 @@ from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEven
 from blessed import Terminal
 
 from browse import load_browser
-from graphics import print_center_msg
+from graphics import print_center_msg, print_debug
 
-def handle_offer(driver, url):
+
+
+def handle_offer(driver, url, offer):
+    scroll = 0
+    lines = []
+    lines.append("")
+    lines.append("")
+    lines.append(offer["title"])
+    lines.append(offer["company"])
+    lines.append("")
+    print_center_msg(term, "Loading offer...", term.black_on_yellow)
     driver.get(url)
+    panels = driver.find_elements_by_class_name("OfferView1PIsMp")
+    for panel in panels:
+        lists = panel.find_elements_by_tag_name("ul")
+        if len(lists) == 0:
+            for p in panel.find_elements_by_tag_name("p"):
+                lines.append(p.text)
+        for lst in lists:
+            ps = lst.find_elements_by_tag_name("p")
+            for p in ps:
+                lines.append(p.text)
+            if len(ps) == 0:
+                for li in lst.find_elements_by_tag_name("li"):
+                    lines.append(li.text)
+            lines.append("".ljust(term.width))
+        lines.append("".ljust(term.width, "─"))
+    lines.append("")
+    lines.append("")
+
+
     print(term.clear)
     val = ""
     while val.lower() != "q":
-        print("test")
+        for i in range(term.height):
+            if i < len(lines):
+                print(lines[i + scroll])
         val = term.inkey()
         if not val:
             pass
@@ -20,9 +51,10 @@ def handle_offer(driver, url):
                 pass
         elif val:
             if val == "j":
-                pass
+                scroll = min(scroll + 1, len(lines) - term.height) 
             if val == "k":
-                pass
+                scroll = max(scroll - 1, 0)
+    print_center_msg(term, "Returning...", term.black_on_yellow)
     driver.back()
     return driver
 
@@ -37,25 +69,27 @@ def get_offers(driver, company = "pracuj.pl"):
             obj["title"] = (offer_element.find_element_by_tag_name("h2").text)
             obj["company"] = (offer_element.find_element_by_class_name("offer-company__name").text)
             obj["element"] = offer_element.find_element_by_xpath("../../..")
+            quick_apply = obj["element"].find_element_by_class_name("offer__info").find_elements_by_class_name("offer-labels__item--one-click-apply")
+            obj["quick"] = len(quick_apply) > 0
             offers.append(obj)
     return offers
 
-def print_debug(term, msg):
-    print(term.home + term.white_on_red(term.bold(msg)))
+
 
 def select_region(driver, term, regions):
     val = ""
     selection = 0
     while val.lower() != "q":
-        print(term.home)
+        print(term.home + term.move_y(term.height//2 - len(regions)//2))
+        print(term.center("┌" + "".ljust(30, "─") + "┐"))
         for i, region in enumerate(regions):
             region_text = ((region["name"]).ljust(30))
             if i == selection:
                 region_text = term.black_on_white(region_text)
-            print(region_text, i)
-        print(selection)
+            print(term.center("│" + region_text + "│"))
+        print(term.center("└" + "".ljust(30, "─") + "┘"))
+        # print(selection)
 
-            
         val = term.inkey()
         if not val:
             pass
@@ -68,7 +102,9 @@ def select_region(driver, term, regions):
                 selection = (selection + 1) % (len(regions))
             if val == "k":
                 selection = (selection - 1) % (len(regions))
-    return ""
+    return False
+
+
 
 def input_loop(term, offline = False, headless = False):
     driver = 0
@@ -116,7 +152,9 @@ def input_loop(term, offline = False, headless = False):
                     else:
                         # debug_msg = str(len(regions))
                         url = el.find_element_by_class_name("offer__info").find_element_by_class_name("offer-details__title-link").get_attribute('href')
-                    driver = handle_offer(driver, url, "https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
+                    if url:
+                        driver = handle_offer(driver, url, offers[selection])
+                        offers = get_offers(driver)
             elif val:
                 if val == "j":
                     selection = min(selection + 1, max(len(offers) - 1, 0))
@@ -137,14 +175,20 @@ def print_offers(term, offers, selection, scroll):
     width = 60
     lines = []
     for i, offer in enumerate(offers):
-        title = (" " + offer["title"]).ljust(width)[:width]
+        quick_apply = "".ljust(12)
+        if offer["quick"]:
+            quick_apply = term.white_on_blue("Quick Apply!")
+        title = (" " + offer["title"]).ljust(width - 12)[:(width - 12)] + quick_apply
         company = ((offer["company"]).ljust(width))[:width]
         if i == selection:
             title = (term.black_on_white(title))
             company = (term.black_on_white(company))
         lines.append((title))
         lines.append((company))
-        lines.append("".ljust(width))
+        # if offer["quick"]:
+        #     lines.append("Quick Apply!".ljust(width))
+        # else:
+        lines.append("".ljust(width, "─"))
 
     print(term.home)
     for i in range(term.height - 6):
@@ -161,5 +205,5 @@ if __name__ == "__main__":
     term = Terminal()
     print(term.clear)
 
-    input_loop(term, offline = False, headless = False)
+    input_loop(term, offline = False, headless = True)
 

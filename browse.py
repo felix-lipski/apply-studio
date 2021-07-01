@@ -3,9 +3,10 @@ import time
 from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
 
 from cookies import load_cookies
-from graphics import print_center_msg
+from graphics import print_center_msg, print_loading
 
 def load_browser(term, headless = True):
+    print(term.clear)
     print_center_msg(term, "Starting browser...", term.black_on_yellow)
 
     browser = "Chrome"
@@ -24,6 +25,7 @@ def load_browser(term, headless = True):
         browser = webdriver.Chrome(options=chrome_options)
     
     print_center_msg(term, "Loading page...", term.black_on_yellow)
+    # print_loading(term)
 
     class EventListeners(AbstractEventListener):
         def after_click(self, element, driver):
