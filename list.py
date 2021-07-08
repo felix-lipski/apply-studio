@@ -5,16 +5,15 @@ from blessed import Terminal
 
 from browse import load_browser
 from graphics import print_center_msg, print_debug
+from pdf import gen_pdf
 
 
 
 def handle_offer(driver, url, offer):
     scroll = 0
-    lines = []
-    lines.append("")
-    lines.append("")
-    lines.append(offer["title"])
-    lines.append(offer["company"])
+    lines = ["", "", term.black_on_white(term.center(offer["title"])), term.black_on_white(term.center(offer["company"])),]
+    if offer["quick"]:
+        lines.append(term.blue("Quick Apply!"))
     lines.append("")
     print_center_msg(term, "Loading offer...", term.black_on_yellow)
     driver.get(url)
@@ -48,7 +47,11 @@ def handle_offer(driver, url, offer):
             pass
         elif val.is_sequence:
             if val.name == "KEY_ENTER":
-                pass
+                driver.get(driver.find_element_by_class_name("OfferView1sEL6l").get_attribute('href'))
+                pdf_file_path = gen_pdf(offer["company"])
+                file_input_el = driver.find_element_by_class_name("file__input")
+                file_input_el.send_keys(pdf_file_path)
+                send_button = driver.find_element_by_class_name("send-section__trigger")
         elif val:
             if val == "j":
                 scroll = min(scroll + 1, len(lines) - term.height) 
@@ -205,5 +208,5 @@ if __name__ == "__main__":
     term = Terminal()
     print(term.clear)
 
-    input_loop(term, offline = False, headless = True)
+    input_loop(term, offline = False, headless = False)
 

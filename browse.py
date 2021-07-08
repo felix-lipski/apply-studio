@@ -5,6 +5,11 @@ from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEven
 from cookies import load_cookies
 from graphics import print_center_msg, print_loading
 
+urls = {
+        "pracuj.pl": "https://www.pracuj.pl/praca/react;kw?rd=30&et=17",
+        "nofluffjobs": "https://nofluffjobs.com/pl/jobs/react?criteria=seniority%3Dtrainee,junior",
+        }
+
 def load_browser(term, headless = True):
     print(term.clear)
     print_center_msg(term, "Starting browser...", term.black_on_yellow)

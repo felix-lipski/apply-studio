@@ -2,3 +2,7 @@
 chrome-data/
 cookies.pkl
 __pycache__/
+*.out
+*.aux
+*.pdf
+*.tex
