@@ -3,13 +3,10 @@ import time
 from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
 
 from graphics import print_center_msg
+from boards import Board
 
-urls = {
-        "pracuj.pl": "https://www.pracuj.pl/praca/react;kw?rd=30&et=17",
-        "nofluffjobs": "https://nofluffjobs.com/pl/jobs/react?criteria=seniority%3Dtrainee,junior",
-        }
 
-def load_browser(term, headless = True):
+def load_browser(term, headless = True, board = Board.NOFLUFFJOBS):
     print(term.clear)
     print_center_msg(term, "Starting browser...", term.black_on_yellow)
 
@@ -36,7 +33,7 @@ def load_browser(term, headless = True):
     
     driver = EventFiringWebDriver(browser, EventListeners())
     
-    driver.get("https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
+    driver.get(board.value["url"])
 
     print_center_msg(term, "Loaded!", term.black_on_blue)
     return driver

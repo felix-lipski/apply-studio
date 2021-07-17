@@ -11,3 +11,10 @@ def print_debug(term, msg):
             term.home + 
             term.white_on_red(term.bold(msg))
     )
+
+def print_board_name(term, board_name):
+    print(
+            term.home + 
+            term.black_on_white(term.center(board_name))
+    )
+

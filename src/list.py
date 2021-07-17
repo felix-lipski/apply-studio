@@ -1,6 +1,8 @@
 from browse import load_browser
-from graphics import print_center_msg, print_debug
+from graphics import print_center_msg, print_debug, print_board_name
 from pdf import gen_pdf
+from boards import Board
+
 
 def handle_offer(driver, term, url, offer):
     scroll = 0
@@ -28,7 +30,6 @@ def handle_offer(driver, term, url, offer):
     lines.append("")
     lines.append("")
 
-
     print(term.clear)
     val = ""
     while val.lower() != "q":
@@ -53,23 +54,6 @@ def handle_offer(driver, term, url, offer):
     print_center_msg(term, "Returning...", term.black_on_yellow)
     driver.back()
     return driver
-
-
-
-def get_offers(driver, company = "pracuj.pl"):
-    offers = []
-    if company == "pracuj.pl":
-        fetched_offers = driver.find_elements_by_class_name("offer-details__text")
-        for offer_element in fetched_offers:
-            obj = {}
-            obj["title"] = (offer_element.find_element_by_tag_name("h2").text)
-            obj["company"] = (offer_element.find_element_by_class_name("offer-company__name").text)
-            obj["element"] = offer_element.find_element_by_xpath("../../..")
-            quick_apply = obj["element"].find_element_by_class_name("offer__info").find_elements_by_class_name("offer-labels__item--one-click-apply")
-            obj["quick"] = len(quick_apply) > 0
-            offers.append(obj)
-    return offers
-
 
 
 def select_region(driver, term, regions):
@@ -103,12 +87,15 @@ def select_region(driver, term, regions):
 
 
 def input_loop(term, offline = False, headless = False):
+    # board = Board.PRACUJPL
+    board = Board.NOFLUFFJOBS
+    # board = Board.JUSTJOINIT
     driver = 0
     offers = []
     debug_msg = ""
     if offline == False:
-        driver = load_browser(term, headless = headless)
-        offers = get_offers(driver)
+        driver = load_browser(term, headless = headless, board = board)
+        offers = board.value["offers_getter"](driver)
     else:
         offers = [
             {"company": "first company", "title": "first job"},
@@ -126,15 +113,14 @@ def input_loop(term, offline = False, headless = False):
         val = ""
         while val.lower() != "q":
             print_offers(term, offers, selection, scroll)
+            print_board_name(term, board.value["name"])
             print_debug(term, debug_msg)
             val = term.inkey()
             if not val:
                 pass
-              # print("It sure is quiet in here ...")
             elif val.is_sequence:
                 # print("got sequence: {0}.".format((str(val), val.name, val.code)))
                 if val.name == "KEY_ENTER":
-                    # print("enter")
                     el = offers[selection]["element"]
                     regions = el.find_elements_by_class_name("offer-regions__port") + el.find_elements_by_class_name("offer-regions")
                     regions = regions[0].find_elements_by_class_name("offer-regions__label")
@@ -183,9 +169,6 @@ def print_offers(term, offers, selection, scroll):
             company = (term.black_on_white(company))
         lines.append((title))
         lines.append((company))
-        # if offer["quick"]:
-        #     lines.append("Quick Apply!".ljust(width))
-        # else:
         lines.append("".ljust(width, "─"))
 
     print(term.home)
