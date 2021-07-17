@@ -1,15 +1,8 @@
-from selenium import webdriver
-import time
-from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
-from blessed import Terminal
-
 from browse import load_browser
 from graphics import print_center_msg, print_debug
 from pdf import gen_pdf
 
-
-
-def handle_offer(driver, url, offer):
+def handle_offer(driver, term, url, offer):
     scroll = 0
     lines = ["", "", term.black_on_white(term.center(offer["title"])), term.black_on_white(term.center(offer["company"])),]
     if offer["quick"]:
@@ -118,13 +111,13 @@ def input_loop(term, offline = False, headless = False):
         offers = get_offers(driver)
     else:
         offers = [
-                {"company": "first company", "title": "first job"},
-                {"company": "second company", "title": "second job"},
-                {"company": "third company", "title": "third company"},
-                {"company": "third to last company", "title": "third to last job"},
-                {"company": "second to last company", "title": "second to last job"},
-                {"company": "last company", "title": "last job"},
-                ]
+            {"company": "first company", "title": "first job"},
+            {"company": "second company", "title": "second job"},
+            {"company": "third company", "title": "third company"},
+            {"company": "third to last company", "title": "third to last job"},
+            {"company": "second to last company", "title": "second to last job"},
+            {"company": "last company", "title": "last job"},
+        ]
     selection = 0
     scroll = 0
     offer_height = 3
@@ -156,7 +149,7 @@ def input_loop(term, offline = False, headless = False):
                         # debug_msg = str(len(regions))
                         url = el.find_element_by_class_name("offer__info").find_element_by_class_name("offer-details__title-link").get_attribute('href')
                     if url:
-                        driver = handle_offer(driver, url, offers[selection])
+                        driver = handle_offer(driver, term, url, offers[selection])
                         offers = get_offers(driver)
             elif val:
                 if val == "j":
@@ -170,7 +163,9 @@ def input_loop(term, offline = False, headless = False):
                         scroll = max(scroll-offer_height, 0)
                 if val == "r":
                     driver.get("https://www.pracuj.pl/praca/react;kw?rd=30&et=17")
-        print(f'bye!{term.normal}')
+        print(term.clear)
+        print_center_msg(term, 'bye!')
+    return 0
 
 
 
@@ -202,11 +197,4 @@ def print_offers(term, offers, selection, scroll):
             print(term.center(lines[pos] + pos_str))
         else:
             print(term.center("".ljust(width) + pos_str))
-
-
-if __name__ == "__main__":
-    term = Terminal()
-    print(term.clear)
-
-    input_loop(term, offline = False, headless = False)
 
