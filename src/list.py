@@ -88,8 +88,9 @@ def select_region(driver, term, regions):
 
 def input_loop(term, offline = False, headless = False):
     # board = Board.PRACUJPL
-    board = Board.NOFLUFFJOBS
+    # board = Board.NOFLUFFJOBS
     # board = Board.JUSTJOINIT
+    board = Board.LINKEDIN
     driver = 0
     offers = []
     debug_msg = ""
