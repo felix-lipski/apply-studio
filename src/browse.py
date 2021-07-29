@@ -22,7 +22,7 @@ def load_browser(term, headless = True, board = Board.NOFLUFFJOBS):
         chrome_options = webdriver.chrome.options.Options()
         if headless:
             chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--user-data-dir=chrome-data")
+        chrome_options.add_argument("--user-data-dir=data/chrome")
         browser = webdriver.Chrome(options=chrome_options)
     
     print_center_msg(term, "Loading page...", term.black_on_yellow)

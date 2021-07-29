@@ -42,7 +42,7 @@ def handle_offer(driver, term, url, offer):
         elif val.is_sequence:
             if val.name == "KEY_ENTER":
                 driver.get(driver.find_element_by_class_name("OfferView1sEL6l").get_attribute('href'))
-                pdf_file_path = gen_pdf(offer["company"])
+                pdf_file_path = gen_pdf(term, offer)
                 file_input_el = driver.find_element_by_class_name("file__input")
                 file_input_el.send_keys(pdf_file_path)
                 send_button = driver.find_element_by_class_name("send-section__trigger")
@@ -87,10 +87,10 @@ def select_region(driver, term, regions):
 
 
 def input_loop(term, offline = False, headless = False):
-    # board = Board.PRACUJPL
+    board = Board.PRACUJPL
     # board = Board.NOFLUFFJOBS
     # board = Board.JUSTJOINIT
-    board = Board.LINKEDIN
+    # board = Board.LINKEDIN
     driver = 0
     offers = []
     debug_msg = ""
@@ -161,10 +161,13 @@ def print_offers(term, offers, selection, scroll):
     lines = []
     for i, offer in enumerate(offers):
         quick_apply = "".ljust(12)
+        generated = "".ljust(9)
         if offer["quick"]:
             quick_apply = term.white_on_blue("Quick Apply!")
+        if offer["generated"]:
+            generated = term.white_on_green("Generated")
         title = (" " + offer["title"]).ljust(width - 12)[:(width - 12)] + quick_apply
-        company = ((offer["company"]).ljust(width))[:width]
+        company =   (offer["company"]).ljust(width - 9 )[:(width - 9 )] + generated
         if i == selection:
             title = (term.black_on_white(title))
             company = (term.black_on_white(company))

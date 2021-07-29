@@ -1,5 +1,14 @@
 from enum import Enum
 from time import sleep
+import csv
+
+
+def check_generated(offer):
+    with open('data/pdf/generated.csv', newline='') as csvfile:
+        spamreader = csv.reader(csvfile)
+        if len(list(filter(lambda x: x[0] == offer["company"] and x[1] == offer["title"], spamreader))) > 0:
+            return True
+    return False
 
 
 def get_offers_pracujpl(driver):
@@ -12,6 +21,7 @@ def get_offers_pracujpl(driver):
         obj["element"] = offer_element.find_element_by_xpath("../../..")
         quick_apply = obj["element"].find_element_by_class_name("offer__info").find_elements_by_class_name("offer-labels__item--one-click-apply")
         obj["quick"] = len(quick_apply) > 0
+        obj["generated"] = check_generated(obj)
         offers.append(obj)
     return offers
 
@@ -25,6 +35,7 @@ def get_offers_nofluffjobs(driver):
         obj["company"] = (offer_element.find_element_by_class_name("company").text)
         obj["element"] = offer_element
         obj["quick"] = False
+        obj["generated"] = check_generated(obj)
         offers.append(obj)
     return offers
 
@@ -43,6 +54,7 @@ def get_offers_justjoinit(driver):
         obj["company"] = obj["url"][27:]
         obj["element"] = offer_element
         obj["quick"] = False
+        obj["generated"] = check_generated(obj)
         offers.append(obj)
     return offers
 
@@ -63,6 +75,7 @@ def get_offers_linkedin(driver):
         obj["element"]   = offer_element
         quick_apply = obj["element"].find_element_by_class_name("job-card-list__footer-wrapper").find_elements_by_class_name("job-card-container__apply-method")
         obj["quick"] = len(quick_apply) > 0
+        obj["generated"] = check_generated(obj)
         offers.append(obj)
     return offers
 

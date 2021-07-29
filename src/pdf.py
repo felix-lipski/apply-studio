@@ -1,7 +1,10 @@
-import os
-import pathlib
+import os, pathlib, csv
 
-def gen_pdf(company_name, user = ["CV", "Jan", "Lipski"]):
+from graphics import print_center_msg
+
+def gen_pdf(term, offer, user = ["CV", "Jan", "Lipski"]):
+    company_name = offer["company"]
+    job_title = offer["title"]
     [words_list, ending] = format(company_name)
     filename = "_".join(user + words_list)
     pdf_filename = filename + ".pdf"
@@ -9,16 +12,25 @@ def gen_pdf(company_name, user = ["CV", "Jan", "Lipski"]):
     if ending:
         rodo_name += " " + ending
 
-    with open('template.tex', 'r') as file :
+    print_center_msg(term, "Generating " + filename + "...", term.black_on_yellow)
+
+    with open('data/pdf/template.tex', 'r') as file :
         filedata = file.read()
     filedata = filedata.replace("$company", rodo_name)
-    with open('pdfbuild/template.tex', 'w') as file:
+    with open('data/pdf/with_company.tex', 'w') as file:
         file.write(filedata)
-
-    genCmd = "mkdir pdfbuild ; cd pdfbuild ; pdflatex ./template.tex ; mv template.pdf " + pdf_filename
-    cleanCmd = "rm template.out template.log template.aux template.tex"
+        
+    genCmd = "mkdir data/pdf ; cd data/pdf ; pdflatex ./with_company.tex ; mv with_company.pdf " + pdf_filename
+    cleanCmd = "rm with_company.out with_company.log with_company.aux"
     os.system("; ".join([genCmd, cleanCmd]))
-    return str(pathlib.Path(__file__).parent.resolve()) + "/pdfbuild/" + pdf_filename
+
+    with open('data/pdf/generated.csv', 'a+', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerow([company_name, job_title])
+
+    print_center_msg(term, filename + "generated!", term.black_on_green)
+    
+    return str(pathlib.Path(__file__).parent.resolve()) + "/data/pdf/" + pdf_filename
 
 def format(txt):
     words_list = list(map(lambda x: x.capitalize() if x.isupper() or x.islower() else x, txt.split()))
@@ -36,4 +48,8 @@ def format(txt):
 
 
 if __name__=="__main__":
-    gen_pdf("HEX OCEAN lkj aaaa s.a.")
+    offer = {
+            "title" : "Computer Developer",
+            "company" : "A Good Company"
+            }
+    gen_pdf(offer)
