@@ -1,6 +1,6 @@
 import os, pathlib, csv
 
-from graphics import print_center_msg
+from ui import print_center_msg
 
 def gen_pdf(term, offer, user = ["CV", "Jan", "Lipski"]):
     company_name = offer["company"]

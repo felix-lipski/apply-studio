@@ -2,7 +2,7 @@ from selenium import webdriver
 import time
 from selenium.webdriver.support.events import EventFiringWebDriver, AbstractEventListener
 
-from graphics import print_center_msg
+from ui import print_center_msg
 from boards import Board
 
 
