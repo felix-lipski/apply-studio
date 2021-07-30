@@ -21,27 +21,33 @@ def print_board_name(term, board_name):
     )
 
 
-def display_lines(term, lines):
+def get_text(driver, x):
+    driver.execute_script("return arguments[0].textContent", x)
+
+
+def split_lines(txt, l):
+    return [txt[i:i+l] for i in range(0, len(txt), l)]
+
+
+def display_lines(input_pdf, term, lines):
     print(term.clear)
     scroll = 0
     val = ""
     while val.lower() != "q":
         for i in range(term.height):
-            if i < len(lines):
+            if (i + scroll + 1) < len(lines) and i + scroll > 0:
                 print(lines[i + scroll])
+            else:
+                print(term.center(str(scroll)))
         val = term.inkey()
         if not val:
             pass
         elif val.is_sequence:
             if val.name == "KEY_ENTER":
-                driver.get(driver.find_element_by_class_name("OfferView1sEL6l").get_attribute('href'))
-                pdf_file_path = gen_pdf(term, offer)
-                file_input_el = driver.find_element_by_class_name("file__input")
-                file_input_el.send_keys(pdf_file_path)
-                send_button = driver.find_element_by_class_name("send-section__trigger")
+                input_pdf()
         elif val:
             if val == "j":
-                scroll = min(scroll + 1, len(lines) - term.height) 
+                scroll = min(scroll + 1, term.height - len(lines)) 
             if val == "k":
                 scroll = max(scroll - 1, 0)
 

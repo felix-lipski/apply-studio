@@ -2,7 +2,8 @@ from enum import Enum
 from time import sleep
 from csv  import reader
 
-from ui import print_center_msg, display_lines, select_option
+from pdf  import gen_pdf
+from ui   import print_center_msg, display_lines, select_option
 
 
 def check_generated(offer):
@@ -83,7 +84,8 @@ def get_offers_linkedin(driver):
 
 
 def handle_offer_pracujpl(driver, term, offers, selection):
-    el = offers[selection]["element"]
+    offer = offers[selection]
+    el = offer["element"]
     regions = el.find_elements_by_class_name("offer-regions__port") + el.find_elements_by_class_name("offer-regions")
     regions = regions[0].find_elements_by_class_name("offer-regions__label")
     regions = list(map(
@@ -95,13 +97,11 @@ def handle_offer_pracujpl(driver, term, offers, selection):
     else:
         url = el.find_element_by_class_name("offer__info").find_element_by_class_name("offer-details__title-link").get_attribute('href')
     if url:
-        offer = offers[selection]
-
+        print_center_msg(term, "Loading offer...", term.black_on_yellow)
         lines = ["", "", term.black_on_white(term.center(offer["title"])), term.black_on_white(term.center(offer["company"])),]
         if offer["quick"]:
             lines.append(term.blue("Quick Apply!"))
         lines.append("")
-        print_center_msg(term, "Loading offer...", term.black_on_yellow)
         driver.get(url)
         panels = driver.find_elements_by_class_name("OfferView1PIsMp")
         for panel in panels:
@@ -121,10 +121,49 @@ def handle_offer_pracujpl(driver, term, offers, selection):
         lines.append("")
         lines.append("")
 
-        display_lines(term, lines)
+        display_lines(input_pdf_pracujpl(driver, term, offer), term, lines)
         print_center_msg(term, "Returning...", term.black_on_yellow)
         driver.back()
     return driver
+
+
+def handle_offer_linkedin(driver, term, offers, selection):
+    offer = offers[selection]
+    el = offer["element"]
+    url = el.find_element_by_tag_name("a").get_attribute('href')
+    lines = ["", "", term.black_on_white(term.center(offer["title"])), term.black_on_white(term.center(offer["company"])),]
+
+    if offer["quick"]:
+        lines.append(term.blue("Quick Apply!"))
+    lines.append("")
+
+    print_center_msg(term, "Loading offer...", term.black_on_yellow)
+    driver.get(url)
+    
+    details = driver.find_element_by_id("job-details")
+
+    for ul in details.find_elements_by_tag_name("ul"):
+        for li in ul.find_elements_by_tag_name("li"):
+            lines.append(li.get_attribute('innerHTML'))
+        lines.append("")
+
+    lines.append("")
+    lines.append("")
+
+    display_lines(input_pdf_pracujpl(driver, term, offer), term, lines)
+    print_center_msg(term, "Returning...", term.black_on_yellow)
+    driver.back()
+    return driver
+
+
+def input_pdf_pracujpl(driver, term, offer):
+    def function():
+        driver.get(driver.find_element_by_class_name("OfferView1sEL6l").get_attribute('href'))
+        pdf_file_path = gen_pdf(term, offer)
+        file_input_el = driver.find_element_by_class_name("file__input")
+        file_input_el.send_keys(pdf_file_path)
+        send_button = driver.find_element_by_class_name("send-section__trigger")
+    return function
 
 
 class Board(Enum):
@@ -150,6 +189,6 @@ class Board(Enum):
             "name": "LinkedIn", 
             "url": "https://www.linkedin.com/jobs/search/?f_E=1%2C2&keywords=React",
             "offers_getter": get_offers_linkedin,
-            "offer_handler": None
+            "offer_handler": handle_offer_linkedin
             }
 

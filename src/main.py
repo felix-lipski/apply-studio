@@ -1,5 +1,5 @@
 from blessed import Terminal
-from list import input_loop
+from loop import input_loop
 from argparse import ArgumentParser
 
 def get_args():

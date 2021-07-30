@@ -1,6 +1,6 @@
 from browse import load_browser
-from ui import print_center_msg, print_debug, print_board_name, print_offers
-from pdf import gen_pdf
+from ui     import print_center_msg, print_debug, print_board_name, print_offers
+from pdf    import gen_pdf
 from boards import Board
 
 
@@ -9,8 +9,9 @@ def input_loop(term, offline = False, headless = False):
     # board = Board.NOFLUFFJOBS
     # board = Board.JUSTJOINIT
     # board = Board.LINKEDIN
-    driver = 0
-    offers = []
+
+    driver    = 0
+    offers    = []
     debug_msg = ""
     if offline == False:
         driver = load_browser(term, headless = headless, board = board)
@@ -24,8 +25,8 @@ def input_loop(term, offline = False, headless = False):
             {"company": "second to last company", "title": "second to last job"},
             {"company": "last company", "title": "last job"},
         ]
-    selection = 0
-    scroll = 0
+    selection    = 0
+    scroll       = 0
     offer_height = 3
     with term.cbreak(), term.hidden_cursor():
         print(term.clear)
