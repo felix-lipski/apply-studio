@@ -5,10 +5,10 @@ from boards import Board
 
 
 def input_loop(term, offline = False, headless = False):
-    board = Board.PRACUJPL
+    # board = Board.PRACUJPL
     # board = Board.NOFLUFFJOBS
     # board = Board.JUSTJOINIT
-    # board = Board.LINKEDIN
+    board = Board.LINKEDIN
 
     driver    = 0
     offers    = []
@@ -58,4 +58,5 @@ def input_loop(term, offline = False, headless = False):
         print(term.clear)
         print_center_msg(term, 'bye!')
     return 0
+
 
